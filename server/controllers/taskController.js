@@ -12,6 +12,12 @@ const saveTasks = (tasks) => {
   fs.writeFileSync(filePath, JSON.stringify(tasks, null, 2));
 };
 
+const listTasks = (_req, res) => {
+  const tasks = readTasks();
+
+  return res.status(200).json(tasks);
+};
+
 const createTask = (req, res) => {
   const { title, description, dueDate } = req.body;
 
@@ -36,9 +42,10 @@ const createTask = (req, res) => {
 
   saveTasks(tasks);
 
-  res.status(201).json(newTask);
+  return res.status(201).json(newTask);
 };
 
 module.exports = {
   createTask,
+  listTasks,
 };
