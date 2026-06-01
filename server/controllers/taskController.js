@@ -45,7 +45,34 @@ const createTask = (req, res) => {
   return res.status(201).json(newTask);
 };
 
+const updateTask = (req, res) => {
+  const { id } = req.params;
+  const { title, description, dueDate, completed } = req.body;
+
+  const tasks = readTasks();
+  const taskIndex = tasks.findIndex((task) => task.id === id);
+
+  if (taskIndex === -1) {
+    return res.status(404).json({ message: "Task not found" });
+  }
+
+  const task = tasks[taskIndex];
+  const updatedTask = {
+    ...task,
+    title: title ?? task.title,
+    description: description ?? task.description,
+    dueDate: dueDate ?? task.dueDate,
+    completed: completed ?? task.completed,
+  };
+
+  tasks[taskIndex] = updatedTask;
+  saveTasks(tasks);
+
+  return res.status(200).json(updatedTask);
+};
+
 module.exports = {
   createTask,
   listTasks,
+  updateTask,
 };
