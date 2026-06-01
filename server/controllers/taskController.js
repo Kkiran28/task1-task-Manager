@@ -71,8 +71,24 @@ const updateTask = (req, res) => {
   return res.status(200).json(updatedTask);
 };
 
+const deleteTask = (req, res) => {
+  const { id } = req.params;
+
+  const tasks = readTasks();
+  const nextTasks = tasks.filter((task) => task.id !== id);
+
+  if (nextTasks.length === tasks.length) {
+    return res.status(404).json({ message: "Task not found" });
+  }
+
+  saveTasks(nextTasks);
+
+  return res.status(200).json({ message: "Task deleted" });
+};
+
 module.exports = {
   createTask,
   listTasks,
   updateTask,
+  deleteTask,
 };

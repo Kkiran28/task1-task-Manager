@@ -1,13 +1,5 @@
 [
   {
-    "id": "0ddb7dc0-a6e5-4b4f-8986-a1906b7996d2",
-    "title": "kiran",
-    "description": "routines data added",
-    "dueDate": "2026-06-10",
-    "completed": false,
-    "createdAt": "2026-06-01T18:19:42.343Z"
-  },
-  {
     "id": "d672adfe-5571-404b-8f2d-7faa328474a5",
     "title": "task manager",
     "description": " daily routines data added",
