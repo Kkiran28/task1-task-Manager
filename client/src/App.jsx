@@ -10,6 +10,8 @@ function App() {
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState("all");
   const [titleError, setTitleError] = useState("");
+  const [editTaskId, setEditTaskId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchTasks();
@@ -72,26 +74,83 @@ function App() {
   };
 
   const handleDeleteTask = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you have to delete this task?"
+    );
+
+    if (!confirmDelete) return;
+
     try {
       await fetch(`${API_URL}/${id}`, {
         method: "DELETE",
       });
+
       fetchTasks();
     } catch (error) {
       console.error("Error deleting task:", error);
     }
   };
 
+  const handleUpdateTask = async () => {
+    if (!title.trim()) {
+      setTitleError("This field is mandatory");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/${editTaskId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          dueDate,
+          priority,
+        }),
+      });
+
+      if (response.ok) {
+        setEditTaskId(null);
+        setTitle("");
+        setDescription("");
+        setDueDate("");
+        setPriority("");
+        setTitleError("");
+
+        fetchTasks();
+      }
+    } catch (error) {
+      console.error("Error updating task:", error);
+    }
+  };
+
   const sortedTasks = [...tasks].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
+  
+  const filteredTasks = sortedTasks
+    .filter((task) => {
+      if (filter === "completed") return task.completed;
+      if (filter === "active") return !task.completed;
+      return true;
+    })
+    .filter((task) =>
+      task.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-  const filteredTasks =
-    filter === "all"
-      ? sortedTasks
-      : filter === "completed"
-      ? sortedTasks.filter((t) => t.completed)
-      : sortedTasks.filter((t) => !t.completed);
+  const isOverdue = (task) => {
+    if (!task.dueDate || task.completed) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const due = new Date(task.dueDate);
+    due.setHours(0, 0, 0, 0);
+
+    return due < today;
+  };
 
   const completedCount = tasks.filter((t) => t.completed).length;
   const incompleteCount = tasks.length - completedCount;
@@ -176,15 +235,26 @@ function App() {
               </div>
 
               <button
-                onClick={handleAddTask}
+                onClick={editTaskId ? handleUpdateTask : handleAddTask}
                 className="w-full rounded-xl bg-gradient-to-r from-yellow-300 to-pink-400 py-2 font-bold text-gray-900 hover:scale-[1.02] transition"
               >
-                + Add Task
+                {editTaskId ? "Update Task" : "+ Add Task"}
               </button>
 
             </div>
           </div>
-
+          
+          {/* SEARCH */}
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="🔍 Search tasks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full rounded-xl bg-white/90 px-4 py-2 text-gray-800 outline-none focus:ring-2 focus:ring-yellow-300"
+            />
+          </div>
+          
           {/* FILTER */}
           <div className="flex items-center justify-between bg-white/10 p-2 rounded-xl border border-white/20 mb-4">
 
@@ -193,33 +263,30 @@ function App() {
             <div className="flex gap-2">
               <button
                 onClick={() => setFilter("all")}
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  filter === "all"
-                    ? "bg-white text-purple-700"
-                    : "bg-white/20 text-white"
-                }`}
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${filter === "all"
+                  ? "bg-white text-purple-700"
+                  : "bg-white/20 text-white"
+                  }`}
               >
                 All
               </button>
 
               <button
                 onClick={() => setFilter("completed")}
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  filter === "completed"
-                    ? "bg-white text-purple-700"
-                    : "bg-white/20 text-white"
-                }`}
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${filter === "completed"
+                  ? "bg-white text-purple-700"
+                  : "bg-white/20 text-white"
+                  }`}
               >
                 Completed
               </button>
 
               <button
                 onClick={() => setFilter("active")}
-                className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  filter === "active"
-                    ? "bg-white text-purple-700"
-                    : "bg-white/20 text-white"
-                }`}
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${filter === "active"
+                  ? "bg-white text-purple-700"
+                  : "bg-white/20 text-white"
+                  }`}
               >
                 Active
               </button>
@@ -250,7 +317,12 @@ function App() {
               filteredTasks.map((task) => (
                 <div
                   key={task._id || task.id}
-                  className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-2xl p-3 flex items-start justify-between hover:border-white/40 transition"
+                  className={`backdrop-blur-xl rounded-2xl p-3 flex items-start justify-between transition
+                  ${
+                    isOverdue(task)
+                      ? "bg-red-500/20 border border-red-400 shadow-lg shadow-red-500/20"
+                      : "bg-white/15 border border-white/20 hover:border-white/40"
+                  }`}
                 >
                   <div className="flex items-start gap-3 flex-1">
                     <input
@@ -260,13 +332,22 @@ function App() {
                       className="mt-1 w-4 h-4 rounded cursor-pointer accent-yellow-300"
                     />
                     <div className="flex-1">
-                      <h4 className={`text-sm font-semibold ${
-                        task.completed
-                          ? "text-white/60 line-through"
-                          : "text-white"
-                      }`}>
+                      <h4 className={`text-sm font-semibold ${task.completed
+                        ? "text-white/60 line-through"
+                        : "text-white"
+                        }`}>
                         {task.title}
                       </h4>
+                      
+                      {/* Overdue Badge */}
+                      {isOverdue(task) && (
+                        <div className="mt-1">
+                          <span className="bg-red-500 text-white text-[10px] px-2 py-1 rounded-full font-semibold">
+                            ⚠ OVERDUE
+                          </span>
+                        </div>
+                      )}
+                      
                       {task.description && (
                         <p className="text-white/70 text-xs mt-1">
                           {task.description}
@@ -274,7 +355,9 @@ function App() {
                       )}
                       <div className="flex gap-2 mt-2 text-xs text-white/60">
                         {task.dueDate && (
-                          <span>📅 Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+                          <span className={isOverdue(task) ? "text-red-300 font-semibold" : ""}>
+                            📅 Due: {new Date(task.dueDate).toLocaleDateString()}
+                          </span>
                         )}
                         {task.createdAt && (
                           <span>Created: {new Date(task.createdAt).toLocaleDateString()}</span>
@@ -283,12 +366,36 @@ function App() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleDeleteTask(task._id || task.id)}
-                    className="text-black font-bold text-lg ml-2 hover:text-gray-700 transition"
-                  >
-                    ✕
-                  </button>
+                  <div className="flex items-center gap-3 ml-2">
+                    <button
+                      onClick={() => {
+                        setTitle(task.title);
+                        setDescription(task.description || "");
+                        setDueDate(
+                          task.dueDate
+                            ? new Date(task.dueDate).toISOString().split("T")[0]
+                            : ""
+                        );
+                        setPriority(task.priority || "");
+                        setEditTaskId(task._id || task.id);
+
+                        window.scrollTo({
+                          top: 0,
+                          behavior: "smooth",
+                        });
+                      }}
+                      className="text-blue-300 font-bold text-lg hover:text-blue-100"
+                    >
+                      ✏️
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteTask(task._id || task.id)}
+                      className="text-black-400 font-bold text-xl hover:text-red-600"
+                    >
+                      ✕
+                    </button>
+                  </div>
                 </div>
               ))
             )}
