@@ -1,9 +1,9 @@
+import Home from "./pages/Home";
+
 function App() {
   return (
-    <div className="h-screen flex items-center justify-center bg-blue-500">
-      <h1 className="text-white text-4xl font-bold">
-        Tailwind is Working 🚀
-      </h1>
+    <div className="min-h-screen bg-gray-100">
+      <Home />
     </div>
   );
 }
