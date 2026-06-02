@@ -9,6 +9,7 @@ function App() {
   const [priority, setPriority] = useState("");
   const [tasks, setTasks] = useState([]);
   const [filter, setFilter] = useState("all");
+  const [titleError, setTitleError] = useState("");
 
   useEffect(() => {
     fetchTasks();
@@ -26,9 +27,11 @@ function App() {
 
   const handleAddTask = async () => {
     if (!title.trim()) {
-      alert("Task title is required");
+      setTitleError("This field is mandatory");
       return;
     }
+
+    setTitleError("");
 
     try {
       const response = await fetch(API_URL, {
@@ -47,6 +50,7 @@ function App() {
         setDescription("");
         setDueDate("");
         setPriority("");
+        setTitleError("");
         fetchTasks();
       }
     } catch (error) {
@@ -91,11 +95,12 @@ function App() {
 
   const completedCount = tasks.filter((t) => t.completed).length;
   const incompleteCount = tasks.length - completedCount;
+
   return (
-    <div className="h-screen w-full overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 flex flex-col">
+    <div className="min-h-screen w-full bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 flex flex-col">
 
       {/* HEADER */}
-      <div className="py-8 mt-4  text-center ">
+      <div className="py-6 text-center">
         <h1 className="text-3xl md:text-5xl leading-[1.3] pb-2 font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-white to-pink-200">
           Task Manager
         </h1>
@@ -104,113 +109,116 @@ function App() {
         </h3>
       </div>
 
-      {/* CENTER AREA */}
-      <div className="flex-1 flex items-start justify-center px-3 pt-2 pb-6 overflow-y-auto">
+      {/* PAGE CONTENT */}
+      <div className="flex-1 flex justify-center px-3 pb-10">
+
         <div className="w-full max-w-2xl">
 
           {/* FORM CARD */}
           <div className="bg-white/15 backdrop-blur-xl border border-white/20 shadow-2xl rounded-3xl p-4 mb-4">
 
-            {/* FORM */}
             <div className="space-y-3">
 
-            <div>
-              <label className="text-white text-sm">Task Title</label>
-              <input
-                type="text"
-                placeholder="Enter task name"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="mt-1 w-full rounded-xl bg-white/90 px-3 py-2 text-gray-800 outline-none focus:ring-2 focus:ring-yellow-300"
-              />
-            </div>
-
-            <div>
-              <label className="text-white text-sm">Description</label>
-              <textarea
-                rows="2"
-                placeholder="Add task details"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 w-full rounded-xl bg-white/90 px-3 py-2 text-gray-800 outline-none focus:ring-2 focus:ring-yellow-300"
-              />
-            </div>
-
-            
-            <div className="grid grid-cols-2 gap-3">
-
-              {/* DUE DATE */}
               <div>
-                <label className="text-white text-sm">Due Date</label>
+                <label className="text-white text-sm">Task Title</label>
                 <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
+                  type="text"
+                  placeholder="Enter task name"
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (titleError) setTitleError("");
+                  }}
+                  className="mt-1 w-full rounded-xl bg-white/90 px-3 py-2 text-gray-800 outline-none focus:ring-2 focus:ring-yellow-300"
+                />
+                {titleError && (
+                  <p className="text-red-400 text-xs mt-1">{titleError}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="text-white text-sm">Description</label>
+                <textarea
+                  rows="2"
+                  placeholder="Add task details"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                   className="mt-1 w-full rounded-xl bg-white/90 px-3 py-2 text-gray-800 outline-none focus:ring-2 focus:ring-yellow-300"
                 />
               </div>
 
-              {/* PRIORITY */}
-              <div>
-                <label className="text-white text-sm">Priority</label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
-                  defaultValue=""
-                  className="mt-1 w-full rounded-xl bg-white/90 px-3 py-2 text-gray-800 outline-none focus:ring-2 focus:ring-yellow-300"
-                >
-                  <option value="" disabled>
-                    Select priority
-                  </option>
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
-                </select>
+              <div className="grid grid-cols-2 gap-3">
+
+                <div>
+                  <label className="text-white text-sm">Due Date</label>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="mt-1 w-full rounded-xl bg-white/90 px-3 py-2 text-gray-800 outline-none focus:ring-2 focus:ring-yellow-300"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-white text-sm">Priority</label>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    className="mt-1 w-full rounded-xl bg-white/90 px-3 py-2 text-gray-800 outline-none focus:ring-2 focus:ring-yellow-300"
+                  >
+                    <option value="">Select</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                  </select>
+                </div>
+
               </div>
 
+              <button
+                onClick={handleAddTask}
+                className="w-full rounded-xl bg-gradient-to-r from-yellow-300 to-pink-400 py-2 font-bold text-gray-900 hover:scale-[1.02] transition"
+              >
+                + Add Task
+              </button>
+
             </div>
-
-            <button
-              onClick={handleAddTask}
-              className="w-full rounded-xl bg-gradient-to-r from-yellow-300 to-pink-400 py-2 font-bold text-gray-900 hover:scale-[1.02] transition"
-            >
-              + Add Task
-            </button>
-
           </div>
 
           {/* FILTER */}
-          <div className="mt-3 flex items-center justify-between bg-white/10 p-2 rounded-xl border border-white/20">
+          <div className="flex items-center justify-between bg-white/10 p-2 rounded-xl border border-white/20 mb-4">
 
             <span className="text-white text-xs">Show:</span>
 
             <div className="flex gap-2">
               <button
                 onClick={() => setFilter("all")}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   filter === "all"
                     ? "bg-white text-purple-700"
-                    : "bg-white/20 text-white hover:bg-white/30"
+                    : "bg-white/20 text-white"
                 }`}
               >
                 All
               </button>
+
               <button
                 onClick={() => setFilter("completed")}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   filter === "completed"
                     ? "bg-white text-purple-700"
-                    : "bg-white/20 text-white hover:bg-white/30"
+                    : "bg-white/20 text-white"
                 }`}
               >
                 Completed
               </button>
+
               <button
                 onClick={() => setFilter("active")}
-                className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${
                   filter === "active"
                     ? "bg-white text-purple-700"
-                    : "bg-white/20 text-white hover:bg-white/30"
+                    : "bg-white/20 text-white"
                 }`}
               >
                 Active
@@ -219,77 +227,65 @@ function App() {
 
           </div>
 
-        </div>
-
           {/* STATS */}
           <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="bg-white/15 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-4 text-center">
+            <div className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-2xl p-4 text-center">
               <p className="text-white/80 text-xs">Completed</p>
               <p className="text-3xl font-bold text-yellow-300">{completedCount}</p>
             </div>
-            <div className="bg-white/15 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-4 text-center">
+
+            <div className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-2xl p-4 text-center">
               <p className="text-white/80 text-xs">Incomplete</p>
               <p className="text-3xl font-bold text-pink-300">{incompleteCount}</p>
             </div>
           </div>
 
-          {/* TASKS LIST */}
+          {/* TASK LIST */}
           <div className="space-y-2">
             {filteredTasks.length === 0 ? (
-              <div className="bg-white/15 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-6 text-center">
+              <div className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-2xl p-6 text-center">
                 <p className="text-white/80 text-sm">No tasks yet. Create one to get started!</p>
               </div>
             ) : (
               filteredTasks.map((task) => (
                 <div
-                  key={task.id}
-                  className="bg-white/15 backdrop-blur-xl border border-white/20 shadow-lg rounded-2xl p-3 flex items-start justify-between"
+                  key={task._id || task.id}
+                  className="bg-white/15 backdrop-blur-xl border border-white/20 rounded-2xl p-3 flex items-start justify-between hover:border-white/40 transition"
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={task.completed}
-                        onChange={() => handleToggleTask(task.id, task.completed)}
-                        className="rounded cursor-pointer"
-                      />
-                      <h4
-                        className={`text-sm font-semibold ${
-                          task.completed
-                            ? "text-white/60 line-through"
-                            : "text-white"
-                        }`}
-                      >
+                  <div className="flex items-start gap-3 flex-1">
+                    <input
+                      type="checkbox"
+                      checked={task.completed || false}
+                      onChange={() => handleToggleTask(task._id || task.id, task.completed)}
+                      className="mt-1 w-4 h-4 rounded cursor-pointer accent-yellow-300"
+                    />
+                    <div className="flex-1">
+                      <h4 className={`text-sm font-semibold ${
+                        task.completed
+                          ? "text-white/60 line-through"
+                          : "text-white"
+                      }`}>
                         {task.title}
                       </h4>
-                      {task.priority && (
-                        <span
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            task.priority === "high"
-                              ? "bg-red-500/30 text-red-200"
-                              : task.priority === "medium"
-                              ? "bg-yellow-500/30 text-yellow-200"
-                              : "bg-green-500/30 text-green-200"
-                          }`}
-                        >
-                          {task.priority}
-                        </span>
+                      {task.description && (
+                        <p className="text-white/70 text-xs mt-1">
+                          {task.description}
+                        </p>
                       )}
+                      <div className="flex gap-2 mt-2 text-xs text-white/60">
+                        {task.dueDate && (
+                          <span>📅 Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+                        )}
+                        {task.createdAt && (
+                          <span>Created: {new Date(task.createdAt).toLocaleDateString()}</span>
+                        )}
+                      </div>
                     </div>
-                    {task.description && (
-                      <p className="text-white/70 text-xs mt-1 ml-6">
-                        {task.description}
-                      </p>
-                    )}
-                    {task.dueDate && (
-                      <p className="text-white/60 text-xs mt-1 ml-6">
-                        Due: {new Date(task.dueDate).toLocaleDateString()}
-                      </p>
-                    )}
                   </div>
+
                   <button
-                    onClick={() => handleDeleteTask(task.id)}
-                    className="text-red-400 hover:text-red-300 text-xs ml-2"
+                    onClick={() => handleDeleteTask(task._id || task.id)}
+                    className="text-black font-bold text-lg ml-2 hover:text-gray-700 transition"
                   >
                     ✕
                   </button>
