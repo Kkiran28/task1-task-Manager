@@ -1,62 +1,9 @@
-import { useState } from "react";
-
-function TaskForm({ addTask }) {
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    dueDate: ""
-  });
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (!form.title) return;
-
-    const newTask = {
-      id: Date.now(),
-      ...form
-    };
-
-    addTask(newTask);
-
-    setForm({ title: "", description: "", dueDate: "" });
-  };
-
+export default function TaskForm() {
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 shadow rounded mb-4">
-      <input
-        name="title"
-        placeholder="Title"
-        value={form.title}
-        onChange={handleChange}
-        className="border p-2 w-full mb-2"
-      />
-
-      <input
-        name="description"
-        placeholder="Description"
-        value={form.description}
-        onChange={handleChange}
-        className="border p-2 w-full mb-2"
-      />
-
-      <input
-        type="date"
-        name="dueDate"
-        value={form.dueDate}
-        onChange={handleChange}
-        className="border p-2 w-full mb-2"
-      />
-
-      <button className="bg-blue-500 text-white px-4 py-2 rounded">
-        Add Task
-      </button>
-    </form>
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-blue-500 to-purple-600 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-2xl  h-p-8 w-full max-w-md">
+        {/* Form content will go here */}
+      </div>
+    </div>
   );
 }
-
-export default TaskForm;
